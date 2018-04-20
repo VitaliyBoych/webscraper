@@ -1,0 +1,193 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using HtmlAgilityPack;
+using System.IO;
+using System.Threading;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using System.Web;
+using System.Net;
+using OpenQA.Selenium.PhantomJS;
+
+namespace cab
+{
+    class Program
+    {
+
+        static string GetWebPageHtmlFromUrl(string url)
+        {
+            var hw = new HtmlWeb();
+            HtmlDocument doc = hw.Load(url);
+            return doc.DocumentNode.OuterHtml;
+        }
+
+        static bool isElementPresent(IWebDriver fox, By by)
+        {
+            return fox.FindElements(by).Count != 0;
+        }
+
+        static void image(string link, string name)
+        {
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(link, name + ".jpg");
+            }
+        }
+
+        static void inside()
+
+        {
+            IWebDriver fox = new PhantomJSDriver();
+            StreamReader r = new StreamReader("links.txt");
+            HtmlDocument doc = new HtmlDocument();
+            string url, result, html, category, img, img_link = "", product_name, price, id, description = "", video_link = "", category1, category2, img1, img2;
+            File.AppendAllText(@"Result.csv", "");
+            int amount = 1;
+
+            while (true)
+            {
+
+                url = r.ReadLine();
+                fox.Navigate().GoToUrl(url);
+                html = fox.PageSource;
+                doc.LoadHtml(html);
+                
+                    try
+                    {
+                        product_name = doc.DocumentNode.SelectSingleNode("//h1[@class='label']").InnerText.Replace("\r\n", "").Replace("&", " and ").Replace("amp;", "").Replace(",", "").Replace("NEW!", "").Trim() + " ;";
+                    }
+                    catch
+                    {
+                        product_name = " ;";
+                    }
+                    category1 = doc.DocumentNode.SelectSingleNode("//div[@id='productDetailsTemplate']/ul[@class='breadcrumb']").InnerText.Replace("\r\n", "").Replace(",", "").Replace("&amp", "and").Trim();
+                    category2 = category1.Replace("You are Here:", "<");
+                    category = category2.Substring(0, category2.IndexOf('<')).Replace("\r\n", "").Replace("\r", "").Replace("\n", "").Replace(";", "").Trim().Replace("                    ", "/").Replace("&", " and ").Replace("amp;", "") + " ;";
+                    id = doc.DocumentNode.SelectSingleNode("//span[@class='itemNumber']").InnerText.Replace("Item:", "").Replace("\r", "").Replace("\n", "").Trim() + " ;";
+                    try
+                    {
+                        price = doc.DocumentNode.SelectSingleNode("//div[@class='price']/dl/dd[1]").InnerText + " ;";
+                    }
+                    catch
+                    {
+                        price = " ;";
+                    }
+                    try
+                    {
+                        Thread.Sleep(2500);
+                        img1 = fox.FindElement(By.XPath("//div[@id='s7swatchcontainer']/div[@id='mySwatches']/div/div/div[@class='s7thumbcell']/div[@class='s7thumb']")).GetAttribute("style");
+                        img2 = img1.Substring(1, img1.IndexOf('?'));
+                        img2 = img2.Replace("url(", ">");
+                        img = img2.Substring(img2.IndexOf('>') + 0);
+                        img_link = img.Replace(">\"", "").Replace(">", "") + "?&wid=1000" + " ;";
+                    }
+                    catch
+                    {
+                        img_link = " ;";
+                    }
+
+                    try
+                    {
+                        description = "\"" + doc.DocumentNode.SelectSingleNode("//div[@class='left']").InnerText.Replace("\n", " ").Replace("aFeoOverrideAttrRead('img', 'src')", "").Replace("\r", " ").Replace(";", "").Replace("\".", "").Trim() + "\" ;";
+                    }
+                    catch
+                    {
+                        description = " ;";
+                    }
+                    try
+                    {
+                        video_link = fox.FindElement(By.XPath(".//*[@id='videoUL']/li/a")).GetAttribute("href");
+                        fox.Navigate().GoToUrl(video_link);
+                        Thread.Sleep(1000);
+                        video_link = fox.FindElement(By.XPath("//div[@id='videoTarget']/iframe")).GetAttribute("src") + " ;";
+                    }
+                    catch
+                    {
+                        video_link = " ;";
+                    }
+                
+
+                result = category + product_name + img_link + price + id + description + video_link + url; //img1;
+                File.AppendAllText(@"Result.csv", result + "\r\n");
+                Console.Write(amount + " Done..\n");
+                amount++;
+            }
+
+        }
+        
+        static void get_links1()
+        {
+            StreamReader r = new StreamReader("link.txt");
+            string url, html;
+            HtmlDocument doc = new HtmlDocument();
+            int amount = 1;
+            int i = 1;
+            int k = 0;
+            while (i <= 100)
+            {
+                try
+                {
+                    url = r.ReadLine();
+                    url = url.Replace("?recordsPerPage=300", "") + "?recordsPerPage=300";
+                    html = GetWebPageHtmlFromUrl(url);
+                    doc.LoadHtml(html);
+                }
+                catch
+                {
+                    url = r.ReadLine();
+                    html = GetWebPageHtmlFromUrl(url);
+                    doc.LoadHtml(html);
+                }
+                html = GetWebPageHtmlFromUrl(url);
+                doc.LoadHtml(html);
+                int j = 1;
+                while (j <= 1)
+                {
+                    HtmlNodeCollection coll = doc.DocumentNode.SelectNodes("//a[@class='itemName']");
+                    for (int z = 0; z < coll.Count; z++)
+                    {
+                        Console.Write(amount + "\n");
+                        File.AppendAllText(@"example.txt", "" + coll[z].GetAttributeValue("href", "") + "\r\n");
+                        amount++;
+                    }
+                    j++;
+                    i++;
+                    k += 108;
+                }
+            }
+        }
+        static void get()
+        {
+            File.Delete("LINKI.txt");
+            string url, html;
+            HtmlDocument doc = new HtmlDocument();
+            url = "";
+            html = GetWebPageHtmlFromUrl(url);
+            doc.LoadHtml(html);
+            int amount = 1;
+            int j = 1;
+            while (j <= 1)
+            {
+                HtmlNodeCollection coll = doc.DocumentNode.SelectNodes("//a[@class='viewAllLink']");
+                for (int z = 0; z < coll.Count; z++)
+                {
+                    Console.Write(amount + "\n");
+                    File.AppendAllText(@"LINKI.txt", "" + coll[z].GetAttributeValue("href", "") + "\r\n");
+                    amount++;
+                }
+                j++;
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            //get();
+            //get_links1();
+            inside();
+        }
+    }
+}
