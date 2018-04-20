@@ -1,0 +1,231 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using HtmlAgilityPack;
+using OpenQA.Selenium.Chrome;
+using System.IO;
+using System.Threading;
+using OpenQA.Selenium;
+
+namespace s
+{
+    class Program
+    {
+        static string GetWebPageHtmlFromUrl(string url)
+        {
+            var hw = new HtmlWeb();
+            HtmlDocument doc = hw.Load(url);
+            return doc.DocumentNode.OuterHtml;
+        }
+        static void get_first_links()
+        {
+            int i = 3;
+            IWebDriver fox = new ChromeDriver(@"E:/");
+            fox.Manage().Window.Maximize();
+            Thread.Sleep(3000);
+            while (i < 26)
+            {
+                fox.Navigate().GoToUrl("" + i + "");
+                List<IWebElement> List = fox.FindElements(By.XPath("//div[@class='agency-result-items clearfix']/div[@class='agency-result-item col-xs-12 col-sm-4']/a")).ToList();
+                for (int z = 0; z < List.Count; z++)
+                {
+                    Console.Write(List[z].GetAttribute("href") + "\n");
+                    File.AppendAllText(@"realestate123.txt", List[z].GetAttribute("href") + "\r\n");
+                }
+                i++;
+            }
+        }
+        static void second_links()
+        {
+            StreamReader r = new StreamReader(@"links.txt");
+            HtmlDocument doc = new HtmlDocument();
+            string url, links, html, firm;
+            int amount = 0, i = 0;
+            while (i<100)
+            {
+                url = r.ReadLine();
+                html = GetWebPageHtmlFromUrl(url);
+                doc.LoadHtml(html);
+                firm = doc.DocumentNode.SelectSingleNode("//div[@class='entry-content']").InnerText;
+                File.AppendAllText(@"REsult.csv", firm + " ," + url + "\n");
+                amount++;
+                Console.Write(amount + "\n");
+                i++;
+            }
+
+        }
+        static void collect_info()
+        {
+            string title;
+            int amount = 1;
+            int j = 1, k = 1, l = 1, n = 1;
+            StreamReader r = new StreamReader(@"link_sec_qld.txt");
+            HtmlDocument doc = new HtmlDocument();
+            string url, links, html;
+            while (true)
+            {
+                url = r.ReadLine();
+                html = GetWebPageHtmlFromUrl(url);
+                doc.LoadHtml(html);
+                while (j <= 1)
+                {
+                    HtmlNodeCollection coll = doc.DocumentNode.SelectNodes("//div[@class='team-name']/h4");
+                    for (int z = 0; z < coll.Count; z++)
+                    {
+                        title = doc.DocumentNode.SelectSingleNode("//div[@class='logo']/span").InnerText.Trim().Replace("\r", "").Replace("\n", "");
+                        File.AppendAllText(@"qld/firm.txt", title + "\r\n");
+                        File.AppendAllText(@"qld/name.txt", coll[z].InnerText + "\r\n");
+
+                    }
+                    j++;
+                }
+                Console.Write(amount + "\n");
+                amount++;
+                j = 1;
+            }
+        }
+        static void collect_agents()
+        {
+            IWebDriver fox = new ChromeDriver(@"E:/");
+            StreamReader r = new StreamReader(@"links.txt");
+            StreamReader n = new StreamReader(@"firm.txt");
+            HtmlDocument doc = new HtmlDocument();
+            string url, links, html, agency, url1;
+            int j = 0, amount = 1;
+            fox.Navigate().GoToUrl("");
+            while (true)
+            {
+                url = r.ReadLine();
+                fox.FindElement(By.XPath("//input[@type='text']")).Clear();
+                fox.FindElement(By.XPath("//input[@type='text']")).SendKeys(url);
+                Thread.Sleep(300);
+            }
+        }
+        private static void SendKeys(string v)
+        {
+            throw new NotImplementedException();
+        }
+        static void get_info()
+        {
+            IWebDriver fox = new ChromeDriver(@"E:/");
+            StreamReader r = new StreamReader(@"links.txt");
+            HtmlDocument doc = new HtmlDocument();
+            string url, firm;
+            int amount = 1;
+            while (true)
+            {
+                url = r.ReadLine();
+                fox.Navigate().GoToUrl(url);
+                Thread.Sleep(6000);
+                firm = fox.FindElement(By.XPath("//div[@class='entry-content']")).Text;
+                File.AppendAllText(@"REsult_eng_cam_ac_uk.csv", "\"" + firm + "\"" + " ," + url + "\n");
+                amount++;
+                Console.Write(amount + "\n");
+            }
+        }
+        static void ihoru()
+        {
+            IWebDriver fox = new ChromeDriver("E:/");
+            StreamReader r = new StreamReader("Company.txt");
+            string input, company;
+            int amount = 1;
+            fox.Navigate().GoToUrl("");
+            while (true)
+            {
+                input = r.ReadLine();
+                fox.FindElement(By.XPath("//form[@id='search_form']/input")).Clear();
+                Thread.Sleep(500);
+                fox.FindElement(By.XPath("//form[@id='search_form']/input")).SendKeys("\"" + input + "\"");
+                Thread.Sleep(500);
+                fox.FindElement(By.XPath("//input[@id='search_button']")).Click();
+                Thread.Sleep(500);
+                try
+                {
+                    company = fox.FindElement(By.XPath("//div[@id='links']//a[@class='result__a'][1]")).GetAttribute("href");
+                }
+                catch
+                {
+                    company = "-";
+                }
+                File.AppendAllText(@"result_igoru.csv", input + " ," + company + "\n");
+                Console.Write(amount + " Done..\n");
+                amount++;
+            }
+        }
+        static void child()
+        {
+            int i = 1, j = 1, k = 1, amount = 1, m = 1;
+            IWebDriver fox = new ChromeDriver(@"E:/");
+            fox.Manage().Window.Maximize();
+            string Url, Name, Adress, mType;
+            fox.Navigate().GoToUrl("");
+            while (true)
+            {
+                while (m < 26)
+                {
+                    Url = fox.FindElement(By.XPath("//*[@id='ctl00_BodyCPH_gvSearchResults']/tbody/tr[" + m + "]/td[3]/a")).GetAttribute("href") + ";";
+                    Adress = fox.FindElement(By.XPath("//*[@id='ctl00_BodyCPH_gvSearchResults']/tbody/tr[" + m + "]/td[5]/address")).Text.Trim().Replace("\r\n",",") + ";";
+                    Name = fox.FindElement(By.XPath("//*[@id='ctl00_BodyCPH_gvSearchResults']/tbody/tr[" + m + "]/td[3]/a")).Text + ";";
+                    mType = fox.FindElement(By.XPath("//*[@id='ctl00_BodyCPH_gvSearchResults']/tbody/tr[" + m + "]/td[2]")).Text;
+                    File.AppendAllText(@"1/result.csv", Name + Url + Adress + mType + "\n");
+                    m++;
+                }
+                m = 1;
+                fox.FindElement(By.XPath("//a[@id='ctl00_BodyCPH_gvSearchResults_ctl29_pagerControl1_lbNext']")).Click();
+                Console.Write(amount + "\n");
+                amount++;
+            }
+
+        }
+        static void child1()
+        {
+            int i = 1, j = 1, k = 1, amount = 1, m = 1;
+            IWebDriver fox = new ChromeDriver(@"E:/");
+            fox.Manage().Window.Maximize();
+            string Url, Name, Adress, mType;
+            fox.Navigate().GoToUrl("");
+            while (true)
+            {
+                while (m < 26)
+                {
+                    Url = fox.FindElement(By.XPath("//*[@id='ctl00_BodyCPH_gvSearchResults']/tbody/tr[" + m + "]/td[3]/a")).GetAttribute("href") + ";";
+                    Adress = fox.FindElement(By.XPath("//*[@id='ctl00_BodyCPH_gvSearchResults']/tbody/tr[" + m + "]/td[5]/address")).Text.Trim().Replace("\r\n", ",") + ";";
+                    Name = fox.FindElement(By.XPath("//*[@id='ctl00_BodyCPH_gvSearchResults']/tbody/tr[" + m + "]/td[3]/a")).Text + ";";
+                    mType = fox.FindElement(By.XPath("//*[@id='ctl00_BodyCPH_gvSearchResults']/tbody/tr[" + m + "]/td[2]")).Text;
+                    File.AppendAllText(@"1/result.csv", Name + Url + Adress + mType + "\n");
+                    m++;
+                }
+                m = 1;
+                fox.FindElement(By.XPath("//a[@id='ctl00_BodyCPH_gvSearchResults_ctl29_pagerControl1_lbNext']")).Click();
+                Console.Write(amount + "\n");
+                amount++;
+            }
+
+        }
+        static void second_links1()
+        {
+            HtmlDocument doc = new HtmlDocument();
+            string url, links, html, category;
+            int amount = 1, i = 1;
+            url = "";
+            html = GetWebPageHtmlFromUrl(url);
+            doc.LoadHtml(html);
+            while (i < 14)
+            {
+                links = doc.DocumentNode.SelectSingleNode("//*[@id='c156070']/div/div/div[" + i + "]/div/div/div[1]/a").GetAttributeValue("href","");
+                category = "Special Buys Liquor";
+                File.AppendAllText(@"r_spec_liqer.txt", links + "\n");
+                File.AppendAllText(@"r_c_spec_liqer.txt", category + "\n");
+                amount++;
+                Console.Write(amount + "\n");
+                i++;
+            }
+        }
+        static void Main(string[] args)
+        {
+			
+        }
+    }
+}
